@@ -7,8 +7,10 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -17,16 +19,20 @@ import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.Builder;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
@@ -37,7 +43,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private float DEFAULT_ZOOM = 20f;
+    private float DEFAULT_RADIUS = 5;
+    private String GEOFENCE_ID = "SELF_GEOFENCE";
     private GeofencingClient geofencingClient;
+    GeofenceContextwrapper geofenceContextwrapper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +55,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         permissionCheck();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         geofencingClient = LocationServices.getGeofencingClient(this);
+        geofenceContextwrapper = new GeofenceContextwrapper(this);
     }
 
     private void initMap() {
@@ -63,7 +74,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             fusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
-                    LatLng latLng=new LatLng(location.getLatitude(), location.getLongitude());
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     markLocation(latLng);
                 }
             });
@@ -84,15 +95,45 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+
     private void moveCamera(LatLng latLng, float default_zoom) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, default_zoom));
+    }
+    private void addCircule(LatLng latLng){
+        CircleOptions options=new CircleOptions();
+        options.center(latLng);
+        options.radius(DEFAULT_RADIUS);
+        options.fillColor(Color.RED);
+        mMap.addCircle(options);
     }
 
     private void markLocation(LatLng latLng) {
         mMap.addMarker(new MarkerOptions().position(latLng).title("current location"));
-        moveCamera(latLng,DEFAULT_ZOOM);
+        addCircule(latLng);
+        moveCamera(latLng, DEFAULT_ZOOM);
+        addGeofence(latLng, DEFAULT_RADIUS);
     }
 
+    private void addGeofence(LatLng latLng, float radius) {
+        Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER |
+                Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_DWELL);
+        GeofencingRequest request = geofenceContextwrapper.getRequest(geofence);
+        PendingIntent pendingIntent = geofenceContextwrapper.getPendingIntent();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        geofencingClient.addGeofences(request, pendingIntent).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                System.out.println("Geo success");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                System.out.println("Geo fail");
+            }
+        });
+    }
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
