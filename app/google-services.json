@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1028020189095",
+    "firebase_url": "https://gogle-map-258db.firebaseio.com",
+    "project_id": "gogle-map-258db",
+    "storage_bucket": "gogle-map-258db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1028020189095:android:837356312cced3bc782882",
+        "android_client_info": {
+          "package_name": "com.envigil.geofencingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1028020189095-pqiqpeqvlt2vbc827jbo2hjaa84tge0t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFPSZ6pwPqjDHKLTjFu4NByxsWxFbc24I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1028020189095-pqiqpeqvlt2vbc827jbo2hjaa84tge0t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
