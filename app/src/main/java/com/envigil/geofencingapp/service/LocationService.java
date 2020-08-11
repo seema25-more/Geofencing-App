@@ -63,7 +63,6 @@ public class LocationService extends Service {
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("")
                     .setContentText("").build();
-
             startForeground(1, notification);
         }
     }

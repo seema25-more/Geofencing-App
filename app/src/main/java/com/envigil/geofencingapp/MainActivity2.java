@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -21,12 +22,15 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity2 extends AppCompatActivity implements View.OnClickListener {
     EditText name,pass;
+            TextView info;
     Button save;
     String Sname,Spass;
     private static final String TAG = "MainActivity2";
@@ -34,12 +38,14 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     public static CollectionReference userRef=db.collection("UserList");
     public static DocumentReference userInfo;
     public static User user1=new User();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         name=findViewById(R.id.name);
         pass=findViewById(R.id.pass);
+        info=findViewById(R.id.info);
         save=findViewById(R.id.btn_save);
         save.setOnClickListener(this);
         if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)!= PackageManager.PERMISSION_GRANTED){
@@ -56,12 +62,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         Sname=name.getText().toString();
         Spass=pass.getText().toString();
-
-//        Map<User, Object> user = new HashMap<>();
-//        user.put(KEY_NAME, Sname);
-//        user.put(KEY_PASS, Spass);
-
-
         user1.setUser_name(Sname);
         user1.setPassword(Spass);
 
@@ -104,5 +104,20 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                         Log.d(TAG,e.toString());
                     }
                 });
+    }
+
+    public void loadUser(View view) {
+        userRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                String Sinfo="";
+                for(QueryDocumentSnapshot snapshot:queryDocumentSnapshots){
+                    User user=snapshot.toObject(User.class);
+                    Sinfo +=user.getUser_name()+"*"+user.getPassword()+"*"+user.getGeoPoint()+"*";
+                    info.setText(Sinfo);
+                }
+
+            }
+        });
     }
 }
