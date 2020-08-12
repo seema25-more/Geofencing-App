@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.envigil.geofencingapp.service.LocationService;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,6 +39,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import static com.envigil.geofencingapp.MainActivity2.Sname;
 import static com.envigil.geofencingapp.MainActivity2.userRef;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -47,14 +50,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private float DEFAULT_ZOOM = 20f;
-    private float DEFAULT_RADIUS = 5;
+    private float DEFAULT_RADIUS = 10;
     private String GEOFENCE_ID = "SELF_GEOFENCE";
     private GeofencingClient geofencingClient;
     GeofenceContextwrapper geofenceContextwrapper;
     PendingIntent pendingIntent;
-    Circle circle;
     CircleOptions circleOptions;
     ArrayList<User> users = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,23 +72,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStart() {
         super.onStart();
-        userRef.addSnapshotListener(MainActivity.this, new EventListener<QuerySnapshot>() {
+       userRef.addSnapshotListener(MainActivity.this, new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 if(error !=null){
                     return;
                 }
-                //Toast.makeText(MainActivity.this, "userRef Toast", Toast.LENGTH_SHORT).show();
-
                 users.clear();
-                if(mMap!=null) {
+                    if(mMap!=null){
                     for (QueryDocumentSnapshot snapshot : value) {
                         User user = snapshot.toObject(User.class);
                         users.add(user);
-                        System.out.println("UserLocation:" + user.getGeoPoint());
                     }
                     addGeofence(users);
-                }
+                    }
+
             }
         });
         /*userInfo.addSnapshotListener(MainActivity.this,new EventListener<DocumentSnapshot>() {
@@ -105,6 +106,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });*/
+        /*userRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
+                    User user = snapshot.toObject(User.class);
+                    users.add(user);
+                }
+                addGeofence(users);
+            }
+        });*/
     }
 
     private void initMap() {
@@ -113,26 +124,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-    private void addCircule(LatLng latLng){
-        circleOptions=new CircleOptions();
-        circleOptions.center(latLng);
-        circleOptions.radius(DEFAULT_RADIUS);
-        circleOptions.fillColor(Color.RED);
-        circle=mMap.addCircle(circleOptions);
-    }
-
-    private void saveUserLocation(){
+    private void saveUserLocation() {
         Intent locationService = new Intent(this, LocationService.class);
         this.startForegroundService(locationService);
-
     }
 
-    /*private void markLocation(LatLng latLng) {
-        mMap.addMarker(new MarkerOptions().position(latLng).title("current location"));
-        addCircule(latLng);
-        moveCamera(latLng, DEFAULT_ZOOM);
-        addGeofence(latLng, DEFAULT_RADIUS);
-    }*/
 
     private void addGeofence(ArrayList<User> users) {
         if(pendingIntent!=null){
@@ -149,15 +145,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             });
         }
         mMap.clear();
-        for(User user:users) {
-
+        for(final User user:users) {
             final GeoPoint geoPoint = user.getGeoPoint();
             if (geoPoint != null) {
                 final LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                if(user.getUser_name().equals(Sname)){
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                }
                 mMap.addMarker(new MarkerOptions().position(latLng).title(user.getUser_name()));
                 final Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_DWELL);
+                        Geofence.GEOFENCE_TRANSITION_DWELL|Geofence.GEOFENCE_TRANSITION_EXIT);
                 GeofencingRequest request = geofenceContextwrapper.getRequest(geofence);
                 pendingIntent = geofenceContextwrapper.getPendingIntent();
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -166,8 +163,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 geofencingClient.addGeofences(request, pendingIntent).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        System.out.println("Geo success");
-                        //addCircule(latLng);
+                        System.out.println("Geo success at:"+latLng.toString());
+                        if(mMap!=null){
+                            circleOptions=new CircleOptions();
+                            circleOptions.center(latLng);
+                            circleOptions.radius(DEFAULT_RADIUS);
+                            circleOptions.fillColor(Color.RED);
+                            mMap.addCircle(circleOptions);
+                        }
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -177,6 +181,34 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 });
             }
         }
+
+        /*final LatLng latLng = new LatLng(17.681794,75.890877);
+        Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+        GeofencingRequest geofencingRequest = geofenceContextwrapper.getRequest(geofence);
+        PendingIntent pendingIntent = geofenceContextwrapper.getPendingIntent();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "onSuccess: Geofence Added...");
+                        mMap.addMarker(new MarkerOptions().position(latLng).title("test"));
+                        circleOptions=new CircleOptions();
+                        circleOptions.center(latLng);
+                        circleOptions.radius(DEFAULT_RADIUS);
+                        circleOptions.fillColor(Color.RED);
+                        mMap.addCircle(circleOptions);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "onFailure: ");
+                    }
+                });*/
     }
 
     @Override
@@ -187,7 +219,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
             mMap.setMyLocationEnabled(true);
-            saveUserLocation();
+           saveUserLocation();
         }
     }
 

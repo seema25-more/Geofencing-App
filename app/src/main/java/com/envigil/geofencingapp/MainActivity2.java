@@ -32,7 +32,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     EditText name,pass;
             TextView info;
     Button save;
-    String Sname,Spass;
+    public static String Sname,Spass;
     private static final String TAG = "MainActivity2";
     static FirebaseFirestore db = FirebaseFirestore.getInstance();
     public static CollectionReference userRef=db.collection("UserList");
