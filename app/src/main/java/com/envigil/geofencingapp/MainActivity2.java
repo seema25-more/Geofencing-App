@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class MainActivity2 extends AppCompatActivity implements View.OnClickListener {
     EditText name,pass;
-            TextView info;
+    TextView info;
     Button save;
     public static String Sname,Spass;
     private static final String TAG = "MainActivity2";
@@ -38,25 +38,26 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     public static CollectionReference userRef=db.collection("UserList");
     public static DocumentReference userInfo;
     public static User user1=new User();
+    private boolean mPermissionGranted;
+    public static final String CORSE_LOCATION = "Manifest.permission.ACCESS_COARSE_LOCATION";
+    public static final String FINE_LOCATION = "Manifest.permission.ACCESS_FINE_LOCATION";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
+        permissionCheck();
         name=findViewById(R.id.name);
         pass=findViewById(R.id.pass);
         info=findViewById(R.id.info);
         save=findViewById(R.id.btn_save);
         save.setOnClickListener(this);
-        if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)!= PackageManager.PERMISSION_GRANTED){
+        /*if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)!= PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.INTERNET},101);
-        }
+        }*/
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
+
 
     @Override
     public void onClick(View v) {
@@ -120,4 +121,38 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
             }
         });
     }
+
+    private boolean permissionCheck() {
+        String[] permission={Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET};
+        if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET)==PackageManager.PERMISSION_GRANTED){
+            if(ContextCompat.checkSelfPermission(getApplicationContext(),CORSE_LOCATION)== PackageManager.PERMISSION_GRANTED){
+                if(ContextCompat.checkSelfPermission(getApplicationContext(), FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
+                    return true;
+                }else {
+                    ActivityCompat.requestPermissions(this,permission,101);
+                    return false;
+                }
+            }else {
+                ActivityCompat.requestPermissions(this,permission,101);
+                return false;
+            }
+        }else {
+            ActivityCompat.requestPermissions(this,permission,101);
+            return false;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode==101) {
+            for (int i : grantResults) {
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+
+                    break;
+                }
+            }
+        }
+    }
+
 }

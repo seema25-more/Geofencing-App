@@ -145,19 +145,41 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void calculateDistance(ArrayList<User> users) {
+
         //Toast.makeText(getApplicationContext(), "Distance is:", Toast.LENGTH_SHORT).show();
         //mMap.clear();
+
         for(User user:users){
+
+            addMarker(users);
             if(user.getUser_name().equals(Sname)) continue;
             LatLng userLocation;
-            userLocation=new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude());
-           // mMap.addMarker(getMarker().position(userLocation).title(user.getUser_name()));
-            Double distanc = SphericalUtil.computeDistanceBetween(loggedUsrlocation,userLocation);
-            if(distanc < 1.90){
-                Toast.makeText(getApplicationContext(), "Distance is:"+distanc, Toast.LENGTH_SHORT).show();
+            try{
+                userLocation=new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude());
+                //addMarker(userLocation,user.getUser_name());
+                // mMap.addMarker(getMarker().position(userLocation).title(user.getUser_name()));
+                if(userLocation==null) continue;
+                Double distance = SphericalUtil.computeDistanceBetween(loggedUsrlocation,userLocation);
+                if(distance < 1.90){
+                    Toast.makeText(getApplicationContext(), "Distance is:"+distance, Toast.LENGTH_SHORT).show();
+                }
+            }catch (NullPointerException e){
+                //Toast.makeText(this, "No Location Found", Toast.LENGTH_SHORT).show();
             }
-            else {
-                Toast.makeText(getApplicationContext(), "Else Distance is:"+distanc, Toast.LENGTH_SHORT).show();
+
+
+
+        }
+    }
+
+    private void addMarker(ArrayList<User> users) {
+        mMap.clear();
+        for(User user:users) {
+            try {
+                LatLng marker = new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude());
+                mMap.addMarker(getMarker().position(marker).title(user.getUser_name()));
+            } catch (NullPointerException e) {
+
             }
         }
     }
@@ -172,7 +194,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         locationService = new Intent(this, LocationService.class);
         this.startForegroundService(locationService);
     }
-
 
     private void addGeofence(ArrayList<User> users) {
         if(pendingIntent!=null){
@@ -273,7 +294,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if(ContextCompat.checkSelfPermission(getApplicationContext(),CORSE_LOCATION)== PackageManager.PERMISSION_GRANTED){
             if(ContextCompat.checkSelfPermission(getApplicationContext(), FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
                 mPermissionGranted=true;
-               initMap();
+                initMap();
                 return true;
             }else {
                 ActivityCompat.requestPermissions(this,permission,101);
@@ -330,6 +351,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return markerOptions;
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
