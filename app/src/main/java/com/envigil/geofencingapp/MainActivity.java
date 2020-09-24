@@ -1,19 +1,23 @@
 package com.envigil.geofencingapp;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog.Builder;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -41,6 +45,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.android.SphericalUtil;
 
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -48,6 +53,7 @@ import static com.envigil.geofencingapp.MainActivity2.Sname;
 import static com.envigil.geofencingapp.MainActivity2.userRef;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+    
     private boolean mPermissionGranted;
     private static final String TAG = "MainActivity";
     public static final String CORSE_LOCATION = "Manifest.permission.ACCESS_COARSE_LOCATION";
@@ -150,7 +156,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         //mMap.clear();
 
         for(User user:users){
-
             addMarker(users);
             if(user.getUser_name().equals(Sname)) continue;
             LatLng userLocation;
@@ -161,15 +166,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 if(userLocation==null) continue;
                 Double distance = SphericalUtil.computeDistanceBetween(loggedUsrlocation,userLocation);
                 if(distance < 1.90){
+                    alertUser();
                     Toast.makeText(getApplicationContext(), "Distance is:"+distance, Toast.LENGTH_SHORT).show();
                 }
             }catch (NullPointerException e){
                 //Toast.makeText(this, "No Location Found", Toast.LENGTH_SHORT).show();
             }
-
-
-
         }
+    }
+
+    private void alertUser() {
+        long[] pattern=new long[]{0,200,50,100,200};
+        Vibrator vibrator= (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+        vibrator.vibrate(VibrationEffect.createWaveform(pattern,-1));
     }
 
     private void addMarker(ArrayList<User> users) {
@@ -320,31 +329,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public double getDistance(LatLng loggedUserLocation,LatLng userLocation){
-            int Radius = 6371;// radius of earth in Km
-            double lat1 = loggedUserLocation.latitude;
-            double lat2 = userLocation.latitude;
-            double lon1 = loggedUserLocation.longitude;
-            double lon2 = userLocation.longitude;
-            double dLat = Math.toRadians(lat2 - lat1);
-            double dLon = Math.toRadians(lon2 - lon1);
-            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                    + Math.cos(Math.toRadians(lat1))
-                    * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
-                    * Math.sin(dLon / 2);
-            double c = 2 * Math.asin(Math.sqrt(a));
-            double valueResult = Radius * c;
-            double km = valueResult / 1;
-            DecimalFormat newFormat = new DecimalFormat("####");
-            int kmInDec = Integer.valueOf(newFormat.format(km));
-            double meter = valueResult % 1000;
-            int meterInDec = Integer.valueOf(newFormat.format(meter));
-            Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
-                    + " Meter   " + meterInDec);
-
-            return Radius * c;
-    }
-
     public static MarkerOptions getMarker(){
         if (markerOptions==null){
            return markerOptions=new MarkerOptions();
@@ -353,9 +337,32 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    public void onBackPressed() {
+        AlertDialog.Builder alertDialogBuilder=new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setTitle("Exit App");
+        alertDialogBuilder.setMessage("Do you want to logout from app?");
+        alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+           new MainActivity2().userLogout();
+           finish();
+        }
+        });
+        alertDialogBuilder.setNegativeButton("Exit App", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                finish();
+            }
+        });
+        AlertDialog alertDialog=alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        this.stopService(locationService);
         //this.unregisterReceiver(new GeofenceReceiver());
-        //this.unbindService((ServiceConnection) locationService);
     }
 }
