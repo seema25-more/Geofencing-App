@@ -8,7 +8,6 @@ import android.widget.Toast;
 public class GeofenceReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context,"Entered in Geofence",Toast.LENGTH_SHORT).show();
-        System.out.println("Entered in Geofence");
+        Toast.makeText(context,"User is in Geofence",Toast.LENGTH_SHORT).show();
     }
 }

@@ -59,7 +59,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         create=findViewById(R.id.btn_update);
         save.setOnClickListener(this);
         create.setOnClickListener(this);
-
         mAuth = FirebaseAuth.getInstance();
     }
 
@@ -257,4 +256,5 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     public void userLogout() {
         FirebaseAuth.getInstance().signOut();
     }
+
 }

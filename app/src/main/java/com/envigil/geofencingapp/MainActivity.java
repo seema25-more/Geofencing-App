@@ -53,7 +53,6 @@ import static com.envigil.geofencingapp.MainActivity2.Sname;
 import static com.envigil.geofencingapp.MainActivity2.userRef;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
-    
     private boolean mPermissionGranted;
     private static final String TAG = "MainActivity";
     public static final String CORSE_LOCATION = "Manifest.permission.ACCESS_COARSE_LOCATION";
@@ -63,6 +62,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private float DEFAULT_ZOOM = 20f;
     private float DEFAULT_RADIUS = 2;
     private String GEOFENCE_ID = "SELF_GEOFENCE";
+    private LatLng latLng;
     private GeofencingClient geofencingClient;
     GeofenceContextwrapper geofenceContextwrapper;
     PendingIntent pendingIntent;
@@ -80,7 +80,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         geofencingClient = LocationServices.getGeofencingClient(this);
         geofenceContextwrapper = new GeofenceContextwrapper(this);
-
+        addGeofence();
     }
 
     @Override
@@ -204,7 +204,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         this.startForegroundService(locationService);
     }
 
-    private void addGeofence(ArrayList<User> users) {
+    private void addGeofence() {
+        ArrayList<User> users=new ArrayList<>();
         if(pendingIntent!=null){
             geofencingClient.removeGeofences(pendingIntent).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
@@ -218,45 +219,45 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
         }
-        mMap.clear();
-        for(final User user:users) {
-            final GeoPoint geoPoint = user.getGeoPoint();
-            if (geoPoint != null) {
-                final LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-                if(user.getUser_name().equals(Sname)){
-                   // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-                }
-                mMap.addMarker(getMarker().position(latLng).title(user.getUser_name()));
-                //Geofence code
-                /*final Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_DWELL|Geofence.GEOFENCE_TRANSITION_EXIT);
-                GeofencingRequest request = geofenceContextwrapper.getRequest(geofence);
-                pendingIntent = geofenceContextwrapper.getPendingIntent();
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                geofencingClient.addGeofences(request, pendingIntent).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        System.out.println("Geo success at:"+latLng.toString());
-                        if(mMap!=null){
-                            circleOptions=new CircleOptions();
-                            circleOptions.center(latLng);
-                            circleOptions.radius(DEFAULT_RADIUS);
-                            circleOptions.fillColor(Color.RED);
-                            mMap.addCircle(circleOptions);
-                        }
+        if(users.size()>0) {
+            for (final User user : users) {
+                final GeoPoint geoPoint = user.getGeoPoint();
+                if (geoPoint != null) {
+                    final LatLng latLng = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
+                    if (user.getUser_name().equals(Sname)) {
+                        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+                    }
+                    mMap.addMarker(getMarker().position(latLng).title(user.getUser_name()));
+                    //Geofence code
+                    final Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER |
+                            Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+                    GeofencingRequest request = geofenceContextwrapper.getRequest(geofence);
+                    pendingIntent = geofenceContextwrapper.getPendingIntent();
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    geofencingClient.addGeofences(request, pendingIntent).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            System.out.println("Geo success at:" + latLng.toString());
+                            if (mMap != null) {
+                                circleOptions = new CircleOptions();
+                                circleOptions.center(latLng);
+                                circleOptions.radius(DEFAULT_RADIUS);
+                                circleOptions.fillColor(Color.RED);
+                                mMap.addCircle(circleOptions);
+                            }
 
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        System.out.println("Geo fail");
-                    }
-                });*/
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            System.out.println("Geo fail");
+                        }
+                    });
+                }
             }
         }
-
         /*final LatLng latLng = new LatLng(17.681794,75.890877);
         Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = geofenceContextwrapper.getRequest(geofence);
