@@ -88,7 +88,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     }
 
     private void createAccount(final String email, final String password) {
-        Log.d(TAG, "createAccount:" + email);
         if (!validateForm()) {
             return;
         }
@@ -97,13 +96,11 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             if(user!=null){
                                saveDataFireStore(email);
                             }
                         } else {
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(MainActivity2.this, "Create account Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
@@ -112,7 +109,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     }
 
     private void signIn(String email, String password) {
-        Log.d(TAG, "signIn:" + email);
         if (!validateForm()) {
             return;
         }
@@ -122,7 +118,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             if(user!=null){
                                 Sname = name.getText().toString();
@@ -131,7 +126,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                             }
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(MainActivity2.this, " login Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
@@ -177,7 +171,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(MainActivity2.this, "Fail", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, e.toString());
                     }
                 });
     }
@@ -197,7 +190,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(MainActivity2.this, "Fail", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG,e.toString());
                     }
                 });
     }

@@ -116,53 +116,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         User user = snapshot.toObject(User.class);
                         users.add(user);
                     }
-                    //addGeofence(users);
                     calculateDistance(users);
                     }
             }
         });
-        /*userInfo.addSnapshotListener(MainActivity.this,new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
-                if(error !=null){
-                    return;
-                }
-                GeoPoint geoPoint=(GeoPoint) value.get("geoPoint");
-                if(geoPoint!=null){
-                    LatLng latLng=new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-                    Toast.makeText(MainActivity.this,""+geoPoint, Toast.LENGTH_SHORT).show();
-                    addGeofence(latLng,DEFAULT_RADIUS);
-                }else {
-                    Toast.makeText(MainActivity.this,"Null location", Toast.LENGTH_SHORT).show();
-                }
 
-            }
-        });*/
-        /*userRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
-                    User user = snapshot.toObject(User.class);
-                    users.add(user);
-                }
-                addGeofence(users);
-            }
-        });*/
     }
 
     private void calculateDistance(ArrayList<User> users) {
-
-        //Toast.makeText(getApplicationContext(), "Distance is:", Toast.LENGTH_SHORT).show();
-        //mMap.clear();
-
         for(User user:users){
             addMarker(users);
             if(user.getUser_name().equals(Sname)) continue;
             LatLng userLocation;
             try{
                 userLocation=new LatLng(user.getGeoPoint().getLatitude(), user.getGeoPoint().getLongitude());
-                //addMarker(userLocation,user.getUser_name());
-                // mMap.addMarker(getMarker().position(userLocation).title(user.getUser_name()));
                 if(userLocation==null) continue;
                 Double distance = SphericalUtil.computeDistanceBetween(loggedUsrlocation,userLocation);
                 if(distance < 1.90){
@@ -170,7 +137,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(getApplicationContext(), "Distance is:"+distance, Toast.LENGTH_SHORT).show();
                 }
             }catch (NullPointerException e){
-                //Toast.makeText(this, "No Location Found", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -247,7 +213,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 circleOptions.fillColor(Color.RED);
                                 mMap.addCircle(circleOptions);
                             }
-
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -258,33 +223,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
-        /*final LatLng latLng = new LatLng(17.681794,75.890877);
-        Geofence geofence = geofenceContextwrapper.getGeofence(GEOFENCE_ID, latLng, DEFAULT_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
-        GeofencingRequest geofencingRequest = geofenceContextwrapper.getRequest(geofence);
-        PendingIntent pendingIntent = geofenceContextwrapper.getPendingIntent();
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "onSuccess: Geofence Added...");
-                        mMap.addMarker(new MarkerOptions().position(latLng).title("test"));
-                        circleOptions=new CircleOptions();
-                        circleOptions.center(latLng);
-                        circleOptions.radius(DEFAULT_RADIUS);
-                        circleOptions.fillColor(Color.RED);
-                        mMap.addCircle(circleOptions);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "onFailure: ");
-                    }
-                });*/
     }
 
     @Override
